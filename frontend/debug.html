@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Debug Token Status</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .debug-card {
+      background: white;
+      border-radius: 10px;
+      padding: 30px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 { color: #667eea; }
+    .status { 
+      padding: 15px;
+      border-radius: 8px;
+      margin: 10px 0;
+      font-weight: 500;
+    }
+    .has-token { background: #d1fae5; color: #065f46; }
+    .no-token { background: #fee2e2; color: #991b1b; }
+    button {
+      background: #ef4444;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      margin: 10px 5px;
+    }
+    button:hover { background: #dc2626; }
+    .clear-btn { background: #f59e0b; }
+    .clear-btn:hover { background: #d97706; }
+    pre {
+      background: #f9fafb;
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="debug-card">
+    <h1>🔍 Debug Token Status</h1>
+    
+    <div id="status"></div>
+    
+    <div style="margin-top: 20px;">
+      <button class="clear-btn" onclick="clearToken()">Clear Token</button>
+      <button onclick="location.href='login.html'">Go to Login</button>
+      <button onclick="location.href='register.html'">Go to Register</button>
+      <button onclick="location.href='index.html'">Go to Index</button>
+    </div>
+    
+    <h3 style="margin-top: 30px;">Token Details:</h3>
+    <pre id="tokenDetails"></pre>
+    
+    <h3>User Details:</h3>
+    <pre id="userDetails"></pre>
+  </div>
+
+  <script>
+    function displayStatus() {
+      const token = localStorage.getItem('token');
+      const user = localStorage.getItem('user');
+      const statusDiv = document.getElementById('status');
+      const tokenDetails = document.getElementById('tokenDetails');
+      const userDetails = document.getElementById('userDetails');
+      
+      if (token) {
+        statusDiv.innerHTML = `
+          <div class="status has-token">
+            ✅ Token Found in localStorage
+          </div>
+        `;
+        tokenDetails.textContent = token;
+        userDetails.textContent = user || 'No user data';
+      } else {
+        statusDiv.innerHTML = `
+          <div class="status no-token">
+            ❌ No Token in localStorage
+          </div>
+        `;
+        tokenDetails.textContent = 'No token stored';
+        userDetails.textContent = 'No user data';
+      }
+    }
+    
+    function clearToken() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      alert('✅ Token and user data cleared!');
+      displayStatus();
+    }
+    
+    displayStatus();
+  </script>
+</body>
+</html>

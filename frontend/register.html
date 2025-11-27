@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register | Illegal Building Detection</title>
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3211/3211620.png">
+  <link rel="stylesheet" href="auth.css" />
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <h1>📝 Register</h1>
+      <p class="subtitle">Create an account to get started</p>
+
+      <form id="registerForm">
+        <div class="input-group">
+          <label>Username</label>
+          <input type="text" id="username" required placeholder="Choose a username">
+        </div>
+
+        <div class="input-group">
+          <label>Email</label>
+          <input type="email" id="email" required placeholder="Enter your email">
+        </div>
+
+        <div class="input-group">
+          <label>Password</label>
+          <input type="password" id="password" required placeholder="Create a password">
+        </div>
+
+        <div class="input-group">
+          <label>Confirm Password</label>
+          <input type="password" id="confirmPassword" required placeholder="Confirm password">
+        </div>
+
+        <button type="submit" class="auth-btn">Register</button>
+      </form>
+
+      <div id="errorMessage" style="display: none; margin-top: 15px; padding: 12px; background: #fee; color: #c00; border-radius: 8px; text-align: center;"></div>
+
+      <p class="alt-text">Already have an account? <a href="login.html">Login</a></p>
+    </div>
+  </div>
+
+  <script>
+    // If already logged in, redirect to home
+    if (sessionStorage.getItem('isLoggedIn') === 'true') {
+      console.log('✅ Already logged in, redirecting to home...');
+      window.location.replace('home.html');
+    }
+
+    const API_URL = 'http://localhost:5000/api';
+
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const errorDiv = document.getElementById('errorMessage');
+      
+      // Validation
+      if (!username || !email || !password || !confirmPassword) {
+        showError('Please fill in all fields');
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        showError('Passwords do not match');
+        return;
+      }
+
+      if (password.length < 6) {
+        showError('Password must be at least 6 characters');
+        return;
+      }
+
+      try {
+        console.log('🔄 Attempting registration...');
+        
+        const response = await fetch(`${API_URL}/register`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, email, password })
+        });
+
+        const data = await response.json();
+        console.log('📥 Response:', data);
+
+        if (response.ok) {
+          console.log('✅ Registration successful!');
+          
+          // Show success message
+          errorDiv.style.display = 'block';
+          errorDiv.style.background = '#d4edda';
+          errorDiv.style.color = '#155724';
+          errorDiv.textContent = '✅ Registration successful! Redirecting to login...';
+          
+          // Redirect to login page
+          setTimeout(() => {
+            window.location.replace('login.html');
+          }, 1500);
+        } else {
+          showError(data.message || 'Registration failed');
+        }
+      } catch (error) {
+        console.error('❌ Registration error:', error);
+        showError('Connection error. Make sure backend is running on http://localhost:5000');
+      }
+    });
+
+    function showError(message) {
+      const errorDiv = document.getElementById('errorMessage');
+      errorDiv.style.display = 'block';
+      errorDiv.style.background = '#fee2e2';
+      errorDiv.style.color = '#991b1b';
+      errorDiv.textContent = '❌ ' + message;
+    }
+  </script>
+</body>
+</html>

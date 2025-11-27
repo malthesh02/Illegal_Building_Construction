@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Illegal Building Detection - GPS Enabled</title>
+  <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/3211/3211620.png">
+  <link rel="stylesheet" href="style.css" />
+
+
+  <script>
+    (function() {
+      'use strict';
+      const isLoggedIn = sessionStorage.getItem('isLoggedIn');
+      
+      if (isLoggedIn !== 'true') {
+        console.log('❌ Not logged in, redirecting to login page...');
+        window.location.replace('login.html');
+      } else {
+        console.log('✅ User is logged in, showing home page');
+      }
+    })();
+  </script>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🏢 Illegal Building Detection System</h1>
+      <p>🌍 GPS-Enabled AI Detection with K-means Clustering & Region Proposals</p>
+      
+      <!-- <div style="margin-top: 20px; display: flex; gap: 15px; justify-content: center;">
+        <button id="modeSingle" class="mode-btn" onclick="detector.switchMode('single')">
+          📷 Single Image
+        </button>
+        <button id="modeTemporal" class="mode-btn active" onclick="detector.switchMode('temporal')">
+          🕐 Two-Temporal (K-means) -->
+        </button>
+      </div>
+    </div>
+
+
+    
+
+    <!-- SINGLE IMAGE CARD (Hidden by default) -->
+    <div class="card" id="singleImageCard" style="display:none;">
+      <h2 style="color: #667eea;">📤 Upload Single Image</h2>
+      
+      <div class="upload-zone" id="uploadZone">
+        <input type="file" id="imageInput" accept="image/*" style="display: none;" />
+        <div class="upload-content">
+          <div class="upload-icon">📷</div>
+          <div class="upload-text">Click or Drag & Drop Image</div>
+          <div class="upload-subtext">Supports: JPG, PNG, TIFF, BMP (Max 16MB)</div>
+        </div>
+      </div>
+
+      <div class="preview-container" id="previewContainer" style="display: none;">
+        <img id="previewImage" class="preview-image" />
+        <div class="image-info" id="imageInfo"></div>
+      </div>
+
+      <!-- GPS Inputs -->
+      <div class="gps-section" style="margin-top: 20px;">
+        <div class="checkbox-group">
+          <input type="checkbox" id="gpsToggle">
+          <label for="gpsToggle">🌍 Use Custom GPS Coordinates</label>
+        </div>
+        <div id="gpsInputs" style="display: none; margin-top: 15px;">
+          <div class="gps-inputs-grid">
+            <input type="number" id="northBound" placeholder="North Latitude (°)" step="0.000001">
+            <input type="number" id="southBound" placeholder="South Latitude (°)" step="0.000001">
+            <input type="number" id="eastBound" placeholder="East Longitude (°)" step="0.000001">
+            <input type="number" id="westBound" placeholder="West Longitude (°)" step="0.000001">
+          </div>
+        </div>
+      </div>
+
+      <button id="processBtn" class="process-btn" disabled>🔍 Detect Buildings</button>
+      <div class="progress-bar" id="progressBarSingle"><div class="progress-fill" id="progressFillSingle">0%</div></div>
+    </div>
+
+    <!-- TWO-TEMPORAL CARD (Default visible) -->
+    <div class="card" id="temporalCard">
+      <h2 style="color: #667eea;">📸 Upload Two Temporal Images (Before & After)</h2>
+      <p style="color: #666; margin-bottom: 20px;">📋 K-means clustering detects changes between time periods</p>
+      
+      <div class="temporal-grid" style="display:flex; gap:20px; justify-content:center; flex-wrap:wrap;">
+        <!-- Image T1 (Time 1 - Before) -->
+        <div class="upload-zone temporal-upload" id="uploadZoneT1" style="flex: 1; min-width: 280px;">
+          <input type="file" id="imageInputT1" accept="image/*" style="display: none;" />
+          <div class="upload-content">
+            <div class="upload-icon">📅</div>
+            <div class="upload-text">Upload <strong>Time 1</strong> (Before)</div>
+            <div class="upload-subtext">Older image</div>
+          </div>
+        </div>
+
+        <!-- Image T2 (Time 2 - After) -->
+        <div class="upload-zone temporal-upload" id="uploadZoneT2" style="flex: 1; min-width: 280px;">
+          <input type="file" id="imageInputT2" accept="image/*" style="display: none;" />
+          <div class="upload-content">
+            <div class="upload-icon">📅</div>
+            <div class="upload-text">Upload <strong>Time 2</strong> (After)</div>
+            <div class="upload-subtext">Newer image</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="preview-pair" style="display:flex; gap:20px; justify-content:center; margin-top:20px; flex-wrap: wrap;">
+        <div id="previewContainerT1" class="preview-container temporal-preview" style="display: none; flex: 1; min-width: 280px;">
+          <img id="previewImageT1" class="preview-image" />
+          <div id="imageInfoT1" class="image-info"></div>
+        </div>
+        <div id="previewContainerT2" class="preview-container temporal-preview" style="display: none; flex: 1; min-width: 280px;">
+          <img id="previewImageT2" class="preview-image" />
+          <div id="imageInfoT2" class="image-info"></div>
+        </div>
+      </div>
+
+      <!-- GPS Inputs -->
+      <div class="gps-section" style="margin-top: 20px;">
+        <div class="checkbox-group">
+          <input type="checkbox" id="gpsToggleTemporal">
+          <label for="gpsToggleTemporal">🌍 Use Custom GPS Coordinates</label>
+        </div>
+        <div id="gpsInputsTemporal" style="display: none; margin-top: 15px;">
+          <div class="gps-inputs-grid">
+            <input type="number" id="northBoundTemporal" placeholder="North Latitude (°)" step="0.000001">
+            <input type="number" id="southBoundTemporal" placeholder="South Latitude (°)" step="0.000001">
+            <input type="number" id="eastBoundTemporal" placeholder="East Longitude (°)" step="0.000001">
+            <input type="number" id="westBoundTemporal" placeholder="West Longitude (°)" step="0.000001">
+          </div>
+        </div>
+      </div>
+
+      <!-- Threshold Slider -->
+      <div class="threshold-slider" style="margin-top: 20px;">
+        <div class="threshold-label">
+          <span style="font-weight:600; color:#555;">🎯 Change Detection Threshold:</span>
+          <span id="thresholdValue" style="font-size: 1.1em;">30</span><span>%</span>
+        </div>
+        <input type="range" id="thresholdSlider" min="10" max="90" value="30" style="width:100%;">
+        <div style="display: flex; justify-content: space-between; font-size: 0.85em; color: #888; margin-top: 5px;">
+          <span>10%</span>
+          <span>50%</span>
+          <span>90%</span>
+        </div>
+      </div>
+
+      <button id="processBtnTemporal" class="process-btn" disabled>🔄 Detect Changes & Buildings</button>
+      <div class="progress-bar" id="progressBarTemporal"><div class="progress-fill" id="progressFillTemporal">0%</div></div>
+    </div>
+
+    <!-- RESULT CARDS -->
+    <div class="card" id="gpsInfoCard" style="display:none;"></div>
+    
+    <div class="card" id="statsCard" style="display:none;">
+      <h2 style="color:#667eea;">📊 Detection Statistics</h2>
+      <div id="statsGrid" class="stats-grid"></div>
+    </div>
+    
+    <div class="card" id="resultsCard" style="display:none;">
+      <h2 style="color:#667eea;">🖼️ Detection Results</h2>
+      <div id="resultsGrid" class="results-grid"></div>
+    </div>
+    
+    <div class="card" id="buildingsCard" style="display:none;">
+      <h2 style="color:#667eea;">🏠 Detected Buildings</h2>
+      <div id="buildingsList" class="buildings-list"></div>
+    </div>
+
+    <!-- FIELD VISITS CARD (New) -->
+    <div class="card" id="fieldVisitsCard" style="display:none;">
+      <h2 style="color:#667eea;">🚗 Field Visit Management</h2>
+      <div id="fieldVisitsList" class="field-visits-list"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

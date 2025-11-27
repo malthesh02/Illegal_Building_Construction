@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Detailed Detection Results</title>
+
+<link rel="stylesheet" href="result.css">
+
+</head>
+
+<body>
+<div class="container">
+
+    <h1>🏢 Detailed Detection Report</h1>
+    <p class="sub">Session ID: <strong>{{ session_id }}</strong> • Timestamp: <strong>{{ timestamp }}</strong></p>
+
+    <!-- Preview Image -->
+    <div class="preview-img">
+        <img src="{{ result_image_url }}" alt="Detection Output">
+    </div>
+
+    <!-- Summary -->
+    <div class="section-title">📊 Summary Statistics</div>
+    <div class="grid">
+        <div class="stat-box">
+            <div class="stat-value">{{ total_buildings }}</div>
+            <div class="stat-label">Total Buildings</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">{{ new_buildings }}</div>
+            <div class="stat-label">New / Changed</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">{{ num_regions }}</div>
+            <div class="stat-label">Change Regions</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">{{ change_percentage }}%</div>
+            <div class="stat-label">Change %</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-value">{{ changed_pixels }}</div>
+            <div class="stat-label">Changed Pixels</div>
+        </div>
+    </div>
+
+    <!-- Buildings Table -->
+    <div class="section-title">🏘 Building-by-Building Details</div>
+    
+    <table>
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>Building ID</th>
+            <th>Area (px)</th>
+            <th>Perimeter (px)</th>
+            <th>Latitude</th>
+            <th>Longitude</th>
+            <th>Status</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for b in building_list %}
+            <tr class="{{ 'illegal' if b.legal_status == 'illegal' else 'legal' }}">
+                <td>{{ loop.index }}</td>
+                <td>{{ b.id }}</td>
+                <td>{{ b.area }}</td>
+                <td>{{ b.perimeter }}</td>
+                <td>{{ b.lat }}</td>
+                <td>{{ b.lon }}</td>
+                <td>{{ b.legal_status | capitalize }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- GPS -->
+    <div class="section-title">🌍 GPS Bounds</div>
+    <div class="grid">
+        <div class="stat-box"><div class="stat-label">North</div><div class="stat-value">{{ gps.north }}</div></div>
+        <div class="stat-box"><div class="stat-label">South</div><div class="stat-value">{{ gps.south }}</div></div>
+        <div class="stat-box"><div class="stat-label">East</div><div class="stat-value">{{ gps.east }}</div></div>
+        <div class="stat-box"><div class="stat-label">West</div><div class="stat-value">{{ gps.west }}</div></div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="buttons">
+        <a href="/" class="btn">🔙 Back Home</a>
+        <a href="{{ download_url }}" class="btn-secondary">⬇ Download Report</a>
+        <a href="{{ geojson_url }}" class="btn-secondary">🌐 Download GeoJSON</a>
+        <a href="{{ result_image_url }}" class="btn">🖼 Download Image</a>
+    </div>
+</div>
+
+</body>
+</html>
